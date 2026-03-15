@@ -25,6 +25,6 @@ CR from session_start to add_to_cart( ~3.9%) is below the market average (5%). C
 Conversion rate across source (data deleted) is higher than others.
 
 ## 5. Dynamic CR to purchase by Source/Medium and Trend Line.
-
+![dynamic cr](image/dynamic_cr1.png)
 
 Traffic wihh (data deleted/data deleted) has higher CR than others. Overall trend line shows slight growth by month-end.
