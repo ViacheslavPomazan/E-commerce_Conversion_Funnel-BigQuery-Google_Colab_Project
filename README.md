@@ -51,7 +51,7 @@ Traffic wihh (data deleted/data deleted) has higher CR than others. Overall tren
 ## SQL Queries. 🔍
 
 <details>
-<summary>1. Data Extraction from BigQuery and Initial Table Creation.</summary>
+<summary><b>Data Extraction from BigQuery and Initial Table Creation.</b></summary>
 
  ```sql
  SELECT timestamp_micros(event_timestamp) AS event_timestamp,
@@ -68,8 +68,10 @@ Traffic wihh (data deleted/data deleted) has higher CR than others. Overall tren
 
 </details>
 
+####  Creating Pivot Table with Conversion Rate calculation for each funnel event by date and traffic channel:
+
 <details>
-<summary>2. Creating Daily Traffic Source Performance Pivot Table: E-commerce Conversion Funnel and Rate Analysis</summary>
+<summary>1. Using CASE expression.</summary>
 
  ```sql
 WITH init AS (
@@ -100,5 +102,114 @@ SELECT event_date,
 FROM init
 GROUP BY event_date, source, medium, campaign
 ORDER BY event_date, source, medium
+```
+</details>
+
+<details>
+<summary>2. Using PIVOT operator.</summary>
+
+```sql
+SELECT p.event_date,
+       p.sourse,
+       p.medium,
+       p.campaign,
+       p.session_start,
+       1.0 * COALESCE(p.add_to_cart, 0) / NULLIF(p.session_start, 0) AS add_to_cart,
+       1.0 * COALESCE(p.begin_checkout, 0) / NULLIF(p.session_start, 0) AS begin_checkout,
+       1.0 * COALESCE(p.purchase, 0) /  NULLIF(p.session_start, 0) AS purchase
+FROM
+      (SELECT *
+       FROM
+           (SELECT DATE(TIMESTAMP_MICROS(event_timestamp)) AS event_date,
+                   traffic_source.source AS sourse,
+                   traffic_source.medium AS medium,
+                   traffic_source.name AS campaign,
+                   event_name,
+                   COUNT(DISTINCT user_pseudo_id || (SELECT value.int_value FROM t.event_params  WHERE  key='ga_session_id')) AS       count_user_session_id
+            FROM `bigquery-public-data.ga4_obfuscated_sample_ecommerce.events_2021*` t
+            WHERE event_name IN ('session_start', 'add_to_cart', 'begin_checkout', 'purchase')
+            GROUP BY event_date, traffic_source.source, traffic_source.medium, traffic_source.name, event_name
+           ) e
+      PIVOT (SUM(count_user_session_id)
+             FOR event_name IN ('session_start', 'add_to_cart', 'begin_checkout', 'purchase'))
+      ) p
+ORDER BY event_date, sourse, medium
+```
+</details>
+
+<details>
+<summary>3. Applying pivoting through aggregation and CASE expression.</summary>
+
+```sql
+SELECT e1.event_date,
+       e1.sourse,
+       e1.medium,
+       e1.campaign,
+       MIN(CASE WHEN event_name = 'session_start' THEN count_user_session_id END) AS session_start,
+       COALESCE(MIN(CASE WHEN event_name = 'add_to_cart' THEN count_user_session_id END), 0) /
+            NULLIF(MIN(CASE WHEN event_name = 'session_start' THEN count_user_session_id END), 0) AS add_to_cart,
+       COALESCE(MIN(CASE WHEN event_name = 'begin_checkout' THEN count_user_session_id END), 0) /
+            NULLIF(MIN(CASE WHEN event_name = 'session_start' THEN count_user_session_id END), 0) AS begin_checkout,
+       COALESCE(MIN(CASE WHEN event_name = 'purchase' THEN count_user_session_id END), 0) /
+            NULLIF(MIN(CASE WHEN event_name = 'session_start' THEN count_user_session_id END), 0) AS purchase
+FROM (
+       SELECT DATE(TIMESTAMP_MICROS(event_timestamp)) AS event_date,
+              traffic_source.source AS sourse,
+              traffic_source.medium AS medium,
+              traffic_source.name AS campaign,
+              event_name,
+              COUNT(distinct user_pseudo_id || (SELECT value.int_value FROM t.event_params  WHERE  key='ga_session_id')) AS  count_user_session_id
+      FROM `bigquery-public-data.ga4_obfuscated_sample_ecommerce.events_2021*` t
+      WHERE event_name IN ('session_start', 'add_to_cart', 'begin_checkout', 'purchase')
+      GROUP BY event_date, traffic_source.source, traffic_source.medium, traffic_source.name, event_name
+     ) e1
+GROUP BY event_date, sourse, medium, campaign
+ORDER BY event_date,sourse, medium
+```
+</details>
+
+<details>
+<summary><b>Comparison of Conversion Rates across different landing pages.</b></summary>
+
+```sql
+WITH first_table AS (
+  SELECT distinct user_pseudo_id || (SELECT value.int_value FROM UNNEST(event_params) WHERE key = 'ga_session_id') AS user_session_id,
+        '/' || REGEXP_EXTRACT((SELECT value.string_value FROM UNNEST(event_params) WHERE key = 'page_location'),
+                  r'^https?://[^/]+/([^?#]*)') AS page_path,
+        ROW_NUMBER() OVER (PARTITION BY user_pseudo_id ||
+              (SELECT value.int_value FROM UNNEST(event_params) WHERE key = 'ga_session_id') ) AS rn
+  FROM `bigquery-public-data.ga4_obfuscated_sample_ecommerce.events_2021*`
+  WHERE event_name = 'session_start'
+    )
+, init AS (
+  SELECT user_session_id, page_path
+  FROM first_table
+  WHERE rn = 1
+)
+--Співвідносим сторінки session_start з покупками через user_session_id
+, purch_users AS (
+  SELECT page_path, user_session_id
+  FROM init  WHERE user_session_id in
+          (SELECT user_pseudo_id || (SELECT value.int_value FROM UNNEST(event_params) WHERE key = 'ga_session_id')
+            FROM `bigquery-public-data.ga4_obfuscated_sample_ecommerce.events_2021*`
+            WHERE event_name = 'purchase')
+              )
+--Рахуєм стартові сторінки
+, start_users_count as (
+      SELECT page_path, count(distinct user_session_id) as start_event
+      FROM init
+      GROUP BY page_path
+      )
+--Рахуєм кількість покупок по сторінкам
+, purchers_users_count as (
+  SELECT page_path, count(distinct user_session_id ) as purchase_event
+  FROM purch_users
+  GROUP BY page_path
+    )
+--З'єднуєм таблицю кількості page_path в session_start з таблицею кількості покупок в сесії, яка починалась з віповіного page_path .
+SELECT s.page_path, s.start_event, coalesce(p.purchase_event, 0) as purchase_event,
+          coalesce(p.purchase_event, 0) / nullif(s.start_event, 0) as cr
+FROM start_users_count s left join purchers_users_count p using(page_path)
+ORDER BY p.purchase_event desc, s.page_path
 ```
 </details>
