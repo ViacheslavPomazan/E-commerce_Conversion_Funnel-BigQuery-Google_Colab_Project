@@ -1,4 +1,4 @@
-# E-commerce_Conversion_Funnel-BigQuery-Google_Colab_Project 🚀
+# E-commerce_Conversion_Funnel-BigQuery_and_Google_Colab_Project 🚀
  
 Welcome! This repository showcases an e-commerce data analysis project powered by BigQuery and Google Colab.
 
@@ -71,7 +71,7 @@ Traffic wihh (data deleted/data deleted) has higher CR than others. Overall tren
 ####  Creating Pivot Table with Conversion Rate calculation for each funnel event by date and traffic channel:
 
 <details>
-<summary>1. Using CASE expression.</summary>
+<summary>Option 1. Using CASE expression.</summary>
 
  ```sql
 WITH init AS (
@@ -106,7 +106,7 @@ ORDER BY event_date, source, medium
 </details>
 
 <details>
-<summary>2. Using PIVOT operator.</summary>
+<summary>Option 2. Using PIVOT operator.</summary>
 
 ```sql
 SELECT p.event_date,
@@ -138,7 +138,7 @@ ORDER BY event_date, sourse, medium
 </details>
 
 <details>
-<summary>3. Applying pivoting through aggregation and CASE expression.</summary>
+<summary>Option 3. Applying pivoting through aggregation and CASE expression.</summary>
 
 ```sql
 SELECT e1.event_date,
@@ -220,5 +220,49 @@ FROM start_users_count s
 LEFT JOIN purchers_users_count p 
 ON s.page_path = p.page_path
 ORDER BY p.purchase_event DESC, s.page_path ASC
+```
+</details>
+
+<details>
+<summary><b>Counting purchase conversion correlation with engagement time and the presence of engagement in a session..</b></summary>
+
+```sql
+with user_sessions as (
+  select
+    user_pseudo_id ||
+      cast((select value.int_value from unnest(event_params) where key = 'ga_session_id') as string)
+      as user_session_id,
+    sum(
+      coalesce(
+        (select value.int_value from unnest(event_params) where key = 'engagement_time_msec'), 0))
+    as total_engagement_time,
+    case
+      when
+        sum(
+          coalesce(
+            safe_cast(
+              (select value.string_value from unnest(event_params) where key = 'session_engaged') as integer), 0)
+        ) > 0
+      then 1
+      else 0
+    end as is_session_engaged
+  from `bigquery-public-data.ga4_obfuscated_sample_ecommerce.events_2021*` e
+  group by 1
+),
+purchases as (
+  select
+    user_pseudo_id ||
+      cast((select value.int_value from e.event_params where key = 'ga_session_id') as string)
+      as user_session_id
+  from `bigquery-public-data.ga4_obfuscated_sample_ecommerce.events_2021*` e
+  where
+    event_name = 'purchase'
+    group by user_session_id
+)
+select
+  corr(s.total_engagement_time, case when p.user_session_id is not null then 1 else 0 end) as engagement_time_to_purchase_corr,
+  corr(s.is_session_engaged, case when p.user_session_id is not null then 1 else 0 end) as engaged_session_to_purchase_corr,
+from user_sessions s
+left join purchases p using(user_session_id)
 ```
 </details>
