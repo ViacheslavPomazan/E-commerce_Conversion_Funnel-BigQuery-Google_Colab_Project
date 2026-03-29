@@ -338,8 +338,8 @@ Pages with low usage (<50 session_starts) mostly demonstrate a CR above 0.05, wh
 
 ### 3. Conversion Funnel Bottlenecks
 *   **Low "Add-to-Cart" Rate:** Current rate is 3.9%, which is below the industry benchmark (5–10%).
-*   **Device Consistency:** Interestingly, the device category (Mobile vs. Desktop) shows no significant impact on CR, suggesting a responsive but equally underperforming UI across platforms.
-*   **Drop-off:** A major drop-off occurs between `view_item` and `add_to_cart`.
+*   **Device Consistency:** Interestingly, the device category (Mobile vs. Desktop vs. Tablet) shows no significant impact on CR, suggesting a responsive but equally underperforming UI across platforms.
+*   **Drop-off:** A major drop-off occurs between `session_start` and `view_item` (CR = ~20%).
 
 ### 4. Page Performance
 *   **Landing pages Performance:** The majority of landing pages (616 out of 717) resulted in zero purchases.
