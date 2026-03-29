@@ -23,7 +23,7 @@ The data source is the BigQuery GA4 public dataset: 'bigquery-public-data.ga4_ob
     *   `google-cloud-bigquery` (Cloud Data Integration)
 
 
-## Analysis Workflow
+## ⚙️ Analysis Workflow
 
 ### 1. **Data Extraction** 
      
@@ -286,7 +286,7 @@ Handling missing `session_start` events and filtering low-traffic outliers to no
 *   Comparison of Conversion Rates across Mobile, Desktop, and Tablet.
 *   Correlation matrices for all eCommerce events.
 
-## Gallery and Insights 📊 💡
+##  📊 Gallery
 
 ### 1. Sessions and Purchases Distribution by Country.
 ![map](image/colab_map1.png)
@@ -311,12 +311,12 @@ Conversion rate across source (data deleted) is higher than others.
 ### 5. Dynamic Purchase CR by Source/Medium and Its Trend Line.
 ![dynamic cr](image/dynamic_cr1.png)
 
-Traffic wihh (data deleted/data deleted) has higher CR than others. Overall trend line shows slight growth by month-end.
+Traffic with (data deleted/data deleted) has higher CR than others. Overall trend line shows slight growth by month-end.
 
 ### 6. Purchase CR by Number of Landing Page Visits.
 ![cr from landing page](image/cr_session_start_count1.png)
 
-Traffic wihh (data deleted/data deleted) has higher CR than others. Overall trend line shows slight growth by month-end.
+Pages with low usage (<50 session_starts) mostly demonstrate a CR above 0.05, while high-traffic pages (>500 session_starts) show a CR below 0.035. The page without a specified page_path shows a significantly higher number of session_starts (49,640) with its CR = 0.013.
 
 ### 7. GA4 Ecommerce Event Correlation Matrix.
 ![heat map](image/heat_map1.png)
@@ -325,7 +325,7 @@ Traffic wihh (data deleted/data deleted) has higher CR than others. Overall tren
 3) Events view_promotion and select_promotion are barely correlated with purchases (~0.14 and 0.03).
    
 
-## Insights
+## 💡 Insights
 
 ### 1. General Performance
 *   **Total Sessions:** 116,514
@@ -339,10 +339,10 @@ Traffic wihh (data deleted/data deleted) has higher CR than others. Overall tren
 ### 3. Conversion Funnel Bottlenecks
 *   **Low "Add-to-Cart" Rate:** Current rate is 3.9%, which is below the industry benchmark (5–10%).
 *   **Device Consistency:** Interestingly, the device category (Mobile vs. Desktop) shows no significant impact on CR, suggesting a responsive but equally underperforming UI across platforms.
-*   **Drop-off:** A major drop-off occurs between `add_to_cart` and `begin_checkout`.
+*   **Drop-off:** A major drop-off occurs between `view_item` and `add_to_cart`.
 
 ### 4. Page Performance
-*   **Long-tail Performance:** The majority of landing pages (616 out of 717) resulted in zero purchases.
+*   **Landing pages Performance:** The majority of landing pages (616 out of 717) resulted in zero purchases.
 *   **Traffic vs. Quality:** High-traffic pages often show a CR below 3.5%, while specific low-traffic niche pages (>50 sessions) achieve CR above 5%.
 
 ### 5. Behavior & Correlations
@@ -350,10 +350,9 @@ Traffic wihh (data deleted/data deleted) has higher CR than others. Overall tren
 *   **Promotional Impact:** `view_promotion` and `select_promotion` events show almost zero correlation with purchases (0.12 and 0.03 respectively), suggesting current on-site promotions are ineffective.
 *   **Strongest Predictors:** `begin_checkout` and `add_payment_info` show the highest correlation (0.84+) with the final purchase, as expected in a standard funnel.
 
----
-*Developed as part of a Data Analysis Portfolio.*
-
-
 ## Feedback and Collaboration 🙌
 
 If you have any feedback regarding the code, or visualization choices, please open an issue or reach out to me directly. I'm also open to collaboration and welcome any contributions that could enhance the report's functionalities!
+
+---
+*Developed as part of a Data Analysis Portfolio.*
