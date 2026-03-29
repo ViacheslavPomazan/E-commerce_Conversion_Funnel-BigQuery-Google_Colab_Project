@@ -1,54 +1,34 @@
 # E-commerce_Conversion_Funnel-BigQuery_and_Google_Colab_Project 🚀
  
-Welcome! This repository showcases an e-commerce data analysis project powered by BigQuery and Google Colab.
+## 📌 Project Overview
+This project provides a comprehensive analysis of an eCommerce conversion funnel using the **Google Analytics 4 (GA4) obfuscated sample dataset** from BigQuery. Originally developed as a technical exercise to master **SQL** and **BigQuery**, the project evolved into a full-cycle data analysis pipeline. It combines complex SQL querying with **Python** for data manipulation and advanced visualization. The analysis covers traffic distribution, conversion rates (CR) across different dimensions (device, country, source), landing page performance, and behavioral correlations.
 
-## Data Source Description 📂
+## 🎯 Key Objectives:
+1.  **Traffic Geography Analysis:** Analysis of session distribution across 109 countries with interactive Choropleth maps.
+2.  **Conversion Funnel Modeling:** Tracking the user journey from `session_start` to `purchase`.
+3.  **Channel Performance:** Evaluating CR dynamics by Source/Medium with trend line (OLS) analysis.
+4.  **Landing Page Effectiveness:** Identifying high-performing vs. high-traffic entry points.
+5.  **Behavioral Correlation:** Investigating the relationship between engagement time, session engagement, and successful conversions using Heatmaps.
 
+## 🛢️ Data Source Description
 The data source is the BigQuery GA4 public dataset: 'bigquery-public-data.ga4_obfuscated_sample_ecommerce.events_2021*', which provides data for January 2021. The dataset consists of 1,210,147 rows.
 
-## Gallery and Insights 📊 💡
+## 🛠️ Technologies Used:
+*   **Database:** Google BigQuery (SQL)
+*   **Language:** Python 3.x
+*   **Libraries:** 
+    *   `pandas`, `numpy` (Data Processing)
+    *   `plotly` (Interactive Maps & Dynamic Charts)
+    *   `seaborn`, `matplotlib` (Statistical Visualizations)
+    *   `google-cloud-bigquery` (Cloud Data Integration)
 
-### General
 
-Total number of sessions 116,514 , total number of purchase 1204, CR = 1.03%.
+## Analysis Workflow
 
-### 1. Sessions and Purchases Distribution by Country.
-![map](image/colab_map1.png)
-
-With over 52,000 sessions, the USA significantly outperforms all other countries. Engagement across the African continent remains minimal. Google serves as the primary traffic source for the majority of countries.
-
-### 2. Sessions Distribution by Source/Medium.
-![distr. by source/medium](image/session_distribution_by_source-medium1.png)
-
-Traffic from unpaid search results on Google lead with more than 37000 sessions. Traffic from users who typed your URL directly where the medium is not explicitly defined takes second place.
-
-### 3. CR by Event and Device Category.
-![distr. by event and device](image/CR_by_event_and_device1.png)
-
-CR from session_start to add_to_cart( ~3.9%) is below the market average (5%). Conversions across all device categories are at the same level.
-
-### 4. CR by Event and Source.
-![distr. by event and source](image/CR_by_event_and_source1.png)
-
-Conversion rate across source (data deleted) is higher than others.
-
-### 5. Dynamic Purchase CR by Source/Medium and Its Trend Line.
-![dynamic cr](image/dynamic_cr1.png)
-
-Traffic wihh (data deleted/data deleted) has higher CR than others. Overall trend line shows slight growth by month-end.
-
-### 6. Purchase CR by Number of Landing Page Visits.
-![cr from landing page](image/cr_session_start_count1.png)
-
-Traffic wihh (data deleted/data deleted) has higher CR than others. Overall trend line shows slight growth by month-end.
-
-### 7. GA4 Ecommerce Event Correlation Matrix.
-![heat map](image/heat_map1.png)
-1) Strong positive correlations (red zones): begin_checkout ↔ add_payment_info (0.85), add_payment_info ↔ purchase (0.84), begin_checkout ↔ purchase (0.72).
-2) Correlation add_to_cart ↔ begin_checkout (0.48) is significantly lower than the conversions from point 1.
-3) Events view_promotion and select_promotion are barely correlated with purchases (~0.14 and 0.03).
-   
-## SQL Queries Used in This Project. ⚒️
+### 1. **Data Extraction** 
+     
+SQL queries utilize `UNNEST` and `REGEXP_EXTRACT` to parse GA4 event parameters and page locations.                       
+     Queries used in this project:
 
 <details>
 <summary><b>Data Extraction from BigQuery and Initial Table Creation.</b></summary>
@@ -296,6 +276,83 @@ select *
 from user_sessions
 ```
 </details>
+
+### 2. **Data Cleaning** 
+Handling missing `session_start` events and filtering low-traffic outliers to normalize CR trends.
+
+### 3. **Visual Analysis:** 
+    
+*   Logarithmic scales for geographical data to account for USA dominance.
+*   Comparison of Conversion Rates across Mobile, Desktop, and Tablet.
+*   Correlation matrices for all eCommerce events.
+
+## Gallery and Insights 📊 💡
+
+### 1. Sessions and Purchases Distribution by Country.
+![map](image/colab_map1.png)
+
+With over 52,000 sessions, the USA significantly outperforms all other countries. Engagement across the African continent remains minimal. Google serves as the primary traffic source for the majority of countries.
+
+### 2. Sessions Distribution by Source/Medium.
+![distr. by source/medium](image/session_distribution_by_source-medium1.png)
+
+Traffic from unpaid search results on Google lead with more than 37000 sessions. Traffic from users who typed your URL directly where the medium is not explicitly defined takes second place.
+
+### 3. CR by Event and Device Category.
+![distr. by event and device](image/CR_by_event_and_device1.png)
+
+CR from session_start to add_to_cart( ~3.9%) is below the market average (5%). Conversions across all device categories are at the same level.
+
+### 4. CR by Event and Source.
+![distr. by event and source](image/CR_by_event_and_source1.png)
+
+Conversion rate across source (data deleted) is higher than others.
+
+### 5. Dynamic Purchase CR by Source/Medium and Its Trend Line.
+![dynamic cr](image/dynamic_cr1.png)
+
+Traffic wihh (data deleted/data deleted) has higher CR than others. Overall trend line shows slight growth by month-end.
+
+### 6. Purchase CR by Number of Landing Page Visits.
+![cr from landing page](image/cr_session_start_count1.png)
+
+Traffic wihh (data deleted/data deleted) has higher CR than others. Overall trend line shows slight growth by month-end.
+
+### 7. GA4 Ecommerce Event Correlation Matrix.
+![heat map](image/heat_map1.png)
+1) Strong positive correlations (red zones): begin_checkout ↔ add_payment_info (0.85), add_payment_info ↔ purchase (0.84), begin_checkout ↔ purchase (0.72).
+2) Correlation add_to_cart ↔ begin_checkout (0.48) is significantly lower than the conversions from point 1.
+3) Events view_promotion and select_promotion are barely correlated with purchases (~0.14 and 0.03).
+   
+
+## Insights
+
+### 1. General Performance
+*   **Total Sessions:** 116,514
+*   **Total Purchases:** 1,204
+*   **Average Conversion Rate (CR):** 1.03%
+
+### 2. Traffic & Geography
+*   **Market Dominance:** The USA is the primary market with over 52k sessions. Engagement in regions like Africa remains minimal.
+*   **Top Acquisition Channel:** Google Organic Search is the leading driver of traffic (~37k sessions).
+
+### 3. Conversion Funnel Bottlenecks
+*   **Low "Add-to-Cart" Rate:** Current rate is 3.9%, which is below the industry benchmark (5–10%).
+*   **Device Consistency:** Interestingly, the device category (Mobile vs. Desktop) shows no significant impact on CR, suggesting a responsive but equally underperforming UI across platforms.
+*   **Drop-off:** A major drop-off occurs between `add_to_cart` and `begin_checkout`.
+
+### 4. Page Performance
+*   **Long-tail Performance:** The majority of landing pages (616 out of 717) resulted in zero purchases.
+*   **Traffic vs. Quality:** High-traffic pages often show a CR below 3.5%, while specific low-traffic niche pages (>50 sessions) achieve CR above 5%.
+
+### 5. Behavior & Correlations
+*   **Engagement Weakness:** There is a weak linear correlation (~0.28) between `engagement_time` and `purchase`, indicating that "time spent" does not necessarily lead to buying.
+*   **Promotional Impact:** `view_promotion` and `select_promotion` events show almost zero correlation with purchases (0.12 and 0.03 respectively), suggesting current on-site promotions are ineffective.
+*   **Strongest Predictors:** `begin_checkout` and `add_payment_info` show the highest correlation (0.84+) with the final purchase, as expected in a standard funnel.
+
+---
+*Developed as part of a Data Analysis Portfolio.*
+
 
 ## Feedback and Collaboration 🙌
 
